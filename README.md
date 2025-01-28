@@ -1,6 +1,6 @@
 # Personal Vulkan Engine Project
 
-Welcome to my personal Vulkan engine project! This repository is my playground for learning and experimenting with Vulkan and modern C++. My goal is to understand Vulkan concepts and build a simple graphics engine from scratch, which will gradually evolve into a basic game engine. This is a long-term, evolving project where I experiment with and test new game technologies and techniques. While you shouldn't expect everything to be polished, I aim to write maintainable code to the best of my current knowledge.
+Welcome to my personal Vulkan engine project! This repository is my playground for learning and experimenting with Vulkan and modern C++. My goal is to understand Vulkan concepts and build a simple graphics engine from scratch, which will gradually evolve into a basic game engine. This is a long-term, evolving project where I experiment with and test new game technologies and techniques. While you shouldn't expect everything to be polished, I aim to write maintainable C++ code as best that I can, and have time for it in my busy schedule.
 
 ## Table of Contents
 
