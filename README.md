@@ -12,13 +12,6 @@ Welcome to my personal Vulkan engine project! This repository is my playground f
 
 This project will cover the following key objectives:
 
-- Learn Vulkan concepts and set up very simple infrastructure code.
-- Construct a simple render pipeline:
-  - Compile fragment and vertex shaders to SPIR-V.
-  - Learn about and implement synchronization structures.
-- Draw a triangle on screen.
-- Draw multiple triangles on screen.
-- Implement multithreaded rendering by having more semaphores and fences owned by images.
 
 ## Checklist
 
@@ -56,8 +49,8 @@ To get started with this project, clone the repository and follow the setup inst
 Install Vulkan SDK from LunarG. Disclaimer I have only tested this project on Windows 11.
 
 ```sh
-git clone https://github.com/your-username/vulkan-engine.git
-cd vulkan-engine
+git clone [https://github.com/your-username/vulkan-engine.git](https://github.com/gabrielkryss/personal-vulkan-engine.git)
+cd personal-vulkan-engine/
 ```
 I use conan2 to install dependencies
 ```sh
