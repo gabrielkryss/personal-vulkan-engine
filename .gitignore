@@ -1,0 +1,76 @@
+!.gitignore
+
+# Ignore build directories
+build/
+Build/
+CMakeFiles/
+
+# Ignore CMake-generated files
+CMakeCache.txt
+CMakeLists.txt.user
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+
+# Ignore Conan files
+conan.lock
+conanbuildinfo.cmake
+conaninfo.txt
+graph_info.json
+
+# Ignore Visual Studio Code files
+.vscode/
+.vscode/*
+
+# Ignore Visual Studio files
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.vc.db
+*.ncb
+*.user
+*.opendb
+*.opensdf
+ipch/
+*.pidb
+*.obj
+*.pch
+*.exe
+*.pdb
+*.ilk
+*.log
+*.lib
+*.sbr
+*.aps
+*.ncb
+*.sdf
+*.lastbuildstate
+*.idb
+*.tmp_proj
+*.lce
+*.lcu
+
+# Ignore other OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# Ignore compiled output
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.lib
+*.exe
+*.out
+*.app
+
+# Ignore other generated files
+*.log
+*.tmp
+
