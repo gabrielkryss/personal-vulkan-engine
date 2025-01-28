@@ -1,6 +1,6 @@
 # Personal Vulkan Engine Project
 
-Welcome to my personal Vulkan engine project! This repository is my playground for learning and experimenting with Vulkan and modern C++. My goal is to understand Vulkan concepts and build a simple graphics engine from scratch, which will gradually evolve into a basic game engine. This is a long-term, evolving project where I experiment with and test new game technologies and techniques. While you shouldn't expect everything to be polished, I aim to write maintainable C++ code as best that I can, and have time for it in my busy schedule.
+Welcome to my personal Vulkan engine project! This repository is my playground for learning and experimenting with Vulkan and modern C++. My goal is to understand Vulkan concepts and build a simple graphics engine from scratch, which will gradually evolve into a basic game engine. This is a long-term, slow, evolving project where I experiment with and test new game technologies and techniques as my busy schedule allows for. While you shouldn't expect everything to be polished, I aim to write maintainable C++ code as best that I can.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ Welcome to my personal Vulkan engine project! This repository is my playground f
 - [ ] ......
 - [ ] Support DX12 (would have to rename the project at this point)
 - [ ] Construct ray tracing pipeline
-- [ ] Implement Nanite, Rendering Meshlets
+- [ ] Implement simple Nanite, Rendering Meshlets (this is a whole other undertaking but I am currently researching to implement, who knows maybe its not that bad)
 - [ ] ......
 - [ ] Entity Component System
 - [ ] ......
