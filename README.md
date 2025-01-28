@@ -4,14 +4,8 @@ Welcome to my personal Vulkan engine project! This repository is my playground f
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Checklist](#checklist)
+1. [Checklist](#checklist)
 3. [How to Run](#how-to-run)
-
-## Project Overview
-
-This project will cover the following key objectives:
-
 
 ## Checklist
 
@@ -30,6 +24,8 @@ This project will cover the following key objectives:
 - [ ] Implement Nanite, Rendering Meshlets
 - [ ] ......
 - [ ] Entity Component System
+- [ ] ......
+- [ ] Design Game Engine API
 - [ ] ......
 - [ ] Font Rendering
 - [ ] ......
