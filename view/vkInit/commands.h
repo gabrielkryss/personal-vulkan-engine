@@ -1,7 +1,7 @@
 #pragma once
-#include "config.h"
-#include "queue_families.h"
-#include "frame.h"
+#include "../../config.h"
+#include "../vkUtil/queue_families.h"
+#include "../vkUtil/frame.h"
 
 namespace vkInit {
 
@@ -19,13 +19,12 @@ namespace vkInit {
 
 		\param device the logical device
 		\param physicalDevice the physical device
-		\param the windows surface (used for getting the queue families)
-		\param debug whether the system is running in debug mode
+		\param surface the windows surface (used for getting the queue families)
 		\returns the created command pool
 	*/
-	vk::CommandPool make_command_pool(vk::Device device, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, bool debug) {
+	vk::CommandPool make_command_pool(vk::Device device, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
 
-		vkUtil::QueueFamilyIndices queueFamilyIndices = vkUtil::findQueueFamilies(physicalDevice, surface, debug);
+		vkUtil::QueueFamilyIndices queueFamilyIndices = vkUtil::findQueueFamilies(physicalDevice, surface);
 
 		vk::CommandPoolCreateInfo poolInfo;
 		poolInfo.flags = vk::CommandPoolCreateFlags() | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
@@ -36,9 +35,7 @@ namespace vkInit {
 		}
 		catch (vk::SystemError err) {
 
-			if (debug) {
-				std::cout << "Failed to create Command Pool" << std::endl;
-			}
+			vkLogging::Logger::get_logger()->print("Failed to create Command Pool");
 
 			return nullptr;
 		}
@@ -48,10 +45,9 @@ namespace vkInit {
 		Make a main command buffer.
 
 		\param inputChunk the required input info
-		\param debug whether the system is running in debug mode
 		\returns the main command buffer
 	*/
-	vk::CommandBuffer make_command_buffer(commandBufferInputChunk inputChunk, bool debug) {
+	vk::CommandBuffer make_command_buffer(commandBufferInputChunk inputChunk) {
 
 		vk::CommandBufferAllocateInfo allocInfo = {};
 		allocInfo.commandPool = inputChunk.commandPool;
@@ -63,29 +59,26 @@ namespace vkInit {
 		try {
 			vk::CommandBuffer commandBuffer = inputChunk.device.allocateCommandBuffers(allocInfo)[0];
 
-			if (debug) {
-				std::cout << "Allocated main command buffer " << std::endl;
-			}
+			vkLogging::Logger::get_logger()->print("Allocated main command buffer ");
 
 			return commandBuffer;
 		}
 		catch (vk::SystemError err) {
 
-			if (debug) {
-				std::cout << "Failed to allocate main command buffer " << std::endl;
-			}
+			vkLogging::Logger::get_logger()->print("Failed to allocate main command buffer ");
 
 			return nullptr;
 		}
 	}
 
 	/**
-	* Make a command buffer for each frame
-	*
-	* @param	inputChunk the various fields
-	* @param	debug whether to print extra information
+		Make a command buffer for each frame
+
+		\param inputChunk the required input info
 	*/
-	void make_frame_command_buffers(commandBufferInputChunk inputChunk, bool debug) {
+	void make_frame_command_buffers(commandBufferInputChunk inputChunk) {
+
+		std::stringstream message;
 
 		vk::CommandBufferAllocateInfo allocInfo = {};
 		allocInfo.commandPool = inputChunk.commandPool;
@@ -97,15 +90,15 @@ namespace vkInit {
 			try {
 				inputChunk.frames[i].commandBuffer = inputChunk.device.allocateCommandBuffers(allocInfo)[0];
 
-				if (debug) {
-					std::cout << "Allocated command buffer for frame " << i << std::endl;
-				}
+				message << "Allocated command buffer for frame " << i;
+				vkLogging::Logger::get_logger()->print(message.str());
+				message.str("");
 			}
 			catch (vk::SystemError err) {
 
-				if (debug) {
-					std::cout << "Failed to allocate command buffer for frame " << i << std::endl;
-				}
+				message << "Failed to allocate command buffer for frame " << i;
+				vkLogging::Logger::get_logger()->print(message.str());
+				message.str("");
 			}
 		}
 	}

@@ -1,4 +1,3 @@
-/*import std.core;*/
 import MyClass;
 
 #include <GLFW/glfw3.h>
@@ -9,9 +8,8 @@ import MyClass;
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.h>
 
-#include "app.h"
+#include "control/app.h"
 
-/*#include <iostream>*/
 import std;
 
 struct Position {
@@ -121,10 +119,10 @@ int main() {
   // Clean up Vulkan instance
   vkDestroyInstance(instance, nullptr);
 
-  App *myApp = new App(640, 480, true);
+	App* myApp = new App(640, 480, true);
 
-  myApp->run();
-  delete myApp;
+	myApp->run();
+	delete myApp;
 
-  return 0;
+	return 0;
 }

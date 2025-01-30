@@ -23,38 +23,38 @@ find_package(glm REQUIRED)
 
 # Add source files
 add_executable(${PROJECT_NAME}
-  src/main.cpp
+  main.cpp
   src/MyClass.cpp
-  src/engine.cpp
-  src/instance.cpp
-  src/app.cpp
-  src/scene.cpp
-  src/memory.cpp
-  src/triangle_mesh.cpp
+  view/engine.cpp
+  control/app.cpp
+  model/scene.cpp
+  view/vkUtil/memory.cpp
+  control/logging.cpp
+  model/vertex_menagerie.cpp
 )
 
 # Add header and interface files
 target_sources(${PROJECT_NAME} PRIVATE
   include/MyClass.ixx
-  include/engine.h
-  include/instance.h
-  include/config.h
-  include/logging.h
-  include/device.h
-  include/queue_families.h
-  include/swapchain.h
-  include/frame.h
-  include/shaders.h
-  include/pipeline.h
-  include/framebuffer.h
-  include/sync.h
-  include/commands.h
-  include/app.h
-  include/render_structs.h
-  include/scene.h
-  include/memory.h
-  include/mesh.h
-  include/triangle_mesh.h
+  view/engine.h
+  view/vkInit/instance.h
+  config.h
+  control/logging.h
+  view/vkInit/device.h
+  view/vkUtil/queue_families.h
+  view/vkInit/swapchain.h
+  view/vkUtil/frame.h
+  view/vkUtil/shaders.h
+  view/vkInit/pipeline.h
+  view/vkInit/framebuffer.h
+  view/vkInit/sync.h
+  view/vkInit/commands.h
+  control/app.h
+  view/vkUtil/render_structs.h
+  model/scene.h
+  view/vkUtil/memory.h
+  view/vkMesh/mesh.h
+  model/vertex_menagerie.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

@@ -1,6 +1,7 @@
 #pragma once
-#include "config.h"
-#include "engine.h"
+#include "../config.h"
+#include "../view/engine.h"
+#include "../model/scene.h"
 
 class App {
 
@@ -13,7 +14,7 @@ private:
 	int numFrames;
 	float frameTime;
 
-	void build_glfw_window(int width, int height, bool debugMode);
+	void build_glfw_window(int width, int height);
 
 	void calculateFrameRate();
 

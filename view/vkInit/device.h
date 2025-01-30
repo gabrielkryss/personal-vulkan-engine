@@ -1,7 +1,6 @@
 #pragma once
-#include "config.h"
-#include "logging.h"
-#include "queue_families.h"
+#include "../../config.h"
+#include "../vkUtil/queue_families.h"
 
 /*
 * Vulkan separates the concept of physical and logical devices. 
@@ -21,13 +20,11 @@ namespace vkInit {
 
 		\param device the physical device to check
 		\param requestedExtensions a list of extension names to check against
-		\param debug whether the system is running in debug mode
 		\returns whether all of the extensions are requested
 	*/
 	bool checkDeviceExtensionSupport(
 		const vk::PhysicalDevice& device,
-		const std::vector<const char*>& requestedExtensions,
-		const bool& debug
+		const std::vector<const char*>& requestedExtensions
 	) {
 
 		/*
@@ -37,13 +34,11 @@ namespace vkInit {
 
 		std::set<std::string> requiredExtensions(requestedExtensions.begin(), requestedExtensions.end());
 
-		if (debug) {
-			std::cout << "Device can support extensions:\n";
-		}
+		vkLogging::Logger::get_logger()->print("Device can support extensions:");
 
 		for (vk::ExtensionProperties& extension : device.enumerateDeviceExtensionProperties()) {
 
-			if (debug) {
+			if (vkLogging::Logger::get_logger()->get_debug_mode()) {
 				std::cout << "\t\"" << extension.extensionName << "\"\n";
 			}
 
@@ -59,14 +54,11 @@ namespace vkInit {
 		Check whether the given physical device is suitable for use.
 
 		\param device the physical device
-		\param debug whether the system is running in debug mode
 		\returns whether the device is suitable
 	*/
-	bool isSuitable(const vk::PhysicalDevice& device, const bool debug) {
+	bool isSuitable(const vk::PhysicalDevice& device) {
 
-		if (debug) {
-			std::cout << "Checking if device is suitable\n";
-		}
+		vkLogging::Logger::get_logger()->print("Checking if device is suitable");
 
 		/*
 		* A device is suitable if it can present to the screen, ie support
@@ -76,8 +68,8 @@ namespace vkInit {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		if (debug) {
-			std::cout << "We are requesting device extensions:\n";
+		vkLogging::Logger::get_logger()->print("We are requesting device extensions:");
+		if (vkLogging::Logger::get_logger()->get_debug_mode()) {
 
 			for (const char* extension : requestedExtensions) {
 				std::cout << "\t\"" << extension << "\"\n";
@@ -85,18 +77,11 @@ namespace vkInit {
 
 		}
 
-		if (bool extensionsSupported = checkDeviceExtensionSupport(device, requestedExtensions, debug)) {
-
-			if (debug) {
-				std::cout << "Device can support the requested extensions!\n";
-			}
+		if (checkDeviceExtensionSupport(device, requestedExtensions)) {
+			vkLogging::Logger::get_logger()->print("Device can support the requested extensions!");
 		}
 		else {
-
-			if (debug) {
-				std::cout << "Device can't support the requested extensions!\n";
-			}
-
+			vkLogging::Logger::get_logger()->print("Device can't support the requested extensions!");
 			return false;
 		}
 		return true;
@@ -106,10 +91,9 @@ namespace vkInit {
 		Choose a physical device for the vulkan instance.
 
 		\param instance the vulkan instance to use
-		\param debug whether the system is running in debug mode
 		\returns the chosen physical device
 	*/
-	vk::PhysicalDevice choose_physical_device(const vk::Instance& instance, const bool debug) {
+	vk::PhysicalDevice choose_physical_device(const vk::Instance& instance) {
 
 		/*
 		* Choose a suitable physical device from a list of candidates.
@@ -117,9 +101,7 @@ namespace vkInit {
 		* independently to the program.
 		*/
 
-		if (debug) {
-			std::cout << "Choosing Physical Device\n";
-		}
+		vkLogging::Logger::get_logger()->print("Choosing Physical Device");
 
 		/*
 		* ResultValueType<std::vector<PhysicalDevice, PhysicalDeviceAllocator>>::type
@@ -129,19 +111,19 @@ namespace vkInit {
 		*/
 		std::vector<vk::PhysicalDevice> availableDevices = instance.enumeratePhysicalDevices();
 
-		if (debug) {
-			std::cout << "There are " << availableDevices.size() << " physical devices available on this system\n";
-		}
+		std::stringstream message;
+		message << "There are " << availableDevices.size() << " physical devices available on this system";
+		vkLogging::Logger::get_logger()->print(message.str());
 
 		/*
 		* check if a suitable device can be found
 		*/
 		for (vk::PhysicalDevice device : availableDevices) {
 
-			if (debug) {
-				log_device_properties(device);
+			if (vkLogging::Logger::get_logger()->get_debug_mode()) {
+				vkLogging::log_device_properties(device);
 			}
-			if (isSuitable(device, debug)) {
+			if (isSuitable(device)) {
 				return device;
 			}
 		}
@@ -153,10 +135,10 @@ namespace vkInit {
 		Create a Vulkan device
 
 		\param physicalDevice the Physical Device to represent
-		\param debug whether the system is running in debug mode
+		\param surface the window surface
 		\returns the created device
 	*/
-	vk::Device create_logical_device(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, bool debug) {
+	vk::Device create_logical_device(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
 
 		/*
 		* Create an abstraction around the GPU
@@ -167,7 +149,7 @@ namespace vkInit {
 		* so queue create info must be passed in.
 		*/
 
-		vkUtil::QueueFamilyIndices indices = vkUtil::findQueueFamilies(physicalDevice, surface, debug);
+		vkUtil::QueueFamilyIndices indices = vkUtil::findQueueFamilies(physicalDevice, surface);
 		std::vector<uint32_t> uniqueIndices;
 		uniqueIndices.push_back(indices.graphicsFamily.value());
 		if (indices.graphicsFamily.value() != indices.presentFamily.value()) {
@@ -214,29 +196,25 @@ namespace vkInit {
                                            const VULKAN_HPP_NAMESPACE::PhysicalDeviceFeatures * pEnabledFeatures_ = {} )
 		*/
 		std::vector<const char*> enabledLayers;
-		if (debug) {
+		if (vkLogging::Logger::get_logger()->get_debug_mode()) {
 			enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
 		}
 		vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
 			vk::DeviceCreateFlags(), 
-			queueCreateInfo.size(), queueCreateInfo.data(),
-			enabledLayers.size(), enabledLayers.data(),
-			deviceExtensions.size(), deviceExtensions.data(),
+			static_cast<uint32_t>(queueCreateInfo.size()), queueCreateInfo.data(),
+			static_cast<uint32_t>(enabledLayers.size()), enabledLayers.data(),
+			static_cast<uint32_t>(deviceExtensions.size()), deviceExtensions.data(),
 			&deviceFeatures
 		);
 
 		try {
 			vk::Device device = physicalDevice.createDevice(deviceInfo);
-			if (debug) {
-				std::cout << "GPU has been successfully abstracted!\n";
-			}
+			vkLogging::Logger::get_logger()->print("GPU has been successfully abstracted!");
 			return device;
 		}
 		catch (vk::SystemError err) {
-			if (debug) {
-				std::cout << "Device creation failed!\n";
-				return nullptr;
-			}
+			vkLogging::Logger::get_logger()->print("Device creation failed!");
+			return nullptr;
 		}
 		return nullptr;
 	}
@@ -246,12 +224,12 @@ namespace vkInit {
 
 		\param physicalDevice the physical device
 		\param device the logical device
-		\param debug whether the system is running in debug mode
+		\param surface the window surface
 		\returns the queues
 	*/
-	std::array<vk::Queue,2> get_queues(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface, bool debug) {
+	std::array<vk::Queue,2> get_queues(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) {
 
-		vkUtil::QueueFamilyIndices indices = vkUtil::findQueueFamilies(physicalDevice, surface, debug);
+		vkUtil::QueueFamilyIndices indices = vkUtil::findQueueFamilies(physicalDevice, surface);
 
 		return { {
 				device.getQueue(indices.graphicsFamily.value(), 0),

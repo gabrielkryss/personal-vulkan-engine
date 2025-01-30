@@ -1,16 +1,34 @@
 #include "app.h"
-#include "scene.h"
+#include "logging.h"
 
+/**
+* Construct a new App.
+* 
+* @param width	the width of the window
+* @param height the height of the window
+* @param debug	whether to run the app with vulkan validation layers and extra print statements
+*/
 App::App(int width, int height, bool debug) {
 
-	build_glfw_window(width, height, debug);
+	vkLogging::Logger::get_logger()->set_debug_mode(debug);
 
-	graphicsEngine = new Engine(width, height, window, debug);
+	build_glfw_window(width, height);
+
+	graphicsEngine = new Engine(width, height, window);
 
 	scene = new Scene();
 }
 
-void App::build_glfw_window(int width, int height, bool debugMode) {
+/**
+* Build the App's window (using glfw)
+* 
+* @param width		the width of the window
+* @param height		the height of the window
+* @param debugMode	whether to make extra print statements
+*/
+void App::build_glfw_window(int width, int height) {
+
+	std::stringstream message;
 
 	//initialize glfw
 	glfwInit();
@@ -19,21 +37,21 @@ void App::build_glfw_window(int width, int height, bool debugMode) {
 	//to the window later
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	//resizing breaks the swapchain, we'll disable it for now
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	//GLFWwindow* glfwCreateWindow (int width, int height, const char *title, GLFWmonitor *monitor, GLFWwindow *share)
 	if (window = glfwCreateWindow(width, height, "ID Tech 12", nullptr, nullptr)) {
-		if (debugMode) {
-			std::cout << "Successfully made a glfw window called \"ID Tech 12\", width: " << width << ", height: " << height << '\n';
-		}
+		message << "Successfully made a glfw window called \"ID Tech 12\", width: " << width << ", height: " << height;
+		vkLogging::Logger::get_logger()->print(message.str());
 	}
 	else {
-		if (debugMode) {
-			std::cout << "GLFW window creation failed\n";
-		}
+		vkLogging::Logger::get_logger()->print("GLFW window creation failed");
 	}
 }
 
+/**
+* Start the App's main loop
+*/
 void App::run() {
 
 	while (!glfwWindowShouldClose(window)) {
@@ -43,6 +61,9 @@ void App::run() {
 	}
 }
 
+/**
+* Calculates the App's framerate and updates the window title
+*/
 void App::calculateFrameRate() {
 	currentTime = glfwGetTime();
 	double delta = currentTime - lastTime;
@@ -60,6 +81,9 @@ void App::calculateFrameRate() {
 	++numFrames;
 }
 
+/**
+* App destructor.
+*/
 App::~App() {
 	delete graphicsEngine;
 	delete scene;

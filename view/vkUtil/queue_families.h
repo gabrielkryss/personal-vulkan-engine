@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "../../config.h"
 
 namespace vkUtil {
 
@@ -10,9 +10,6 @@ namespace vkUtil {
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
 
-		/**
-			\returns whether all of the Queue family indices have been set.
-		*/
 		bool isComplete() {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
@@ -22,17 +19,17 @@ namespace vkUtil {
 		Find suitable queue family indices on the given physical device.
 
 		\param device the physical device to check
-		\param debug whether the system is running in debug mode
 		\returns a struct holding the queue family indices
 	*/
-	QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device, vk::SurfaceKHR surface, bool debug) {
+	QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device, vk::SurfaceKHR surface) {
 		QueueFamilyIndices indices;
 
 		std::vector<vk::QueueFamilyProperties> queueFamilies = device.getQueueFamilyProperties();
 
-		if (debug) {
-			std::cout << "There are " << queueFamilies.size() << " queue families available on the system.\n";
-		}
+		std::stringstream message;
+		message << "There are " << queueFamilies.size() << " queue families available on the system.";
+		vkLogging::Logger::get_logger()->print(message.str());
+		message.str("");
 
 		int i = 0;
 		for (vk::QueueFamilyProperties queueFamily : queueFamilies) {
@@ -72,17 +69,17 @@ namespace vkUtil {
 			if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
 				indices.graphicsFamily = i;
 
-				if (debug) {
-					std::cout << "Queue Family " << i << " is suitable for graphics\n";
-				}
+				message << "Queue Family " << i << " is suitable for graphics.";
+				vkLogging::Logger::get_logger()->print(message.str());
+				message.str("");
 			}
 
 			if (device.getSurfaceSupportKHR(i, surface)) {
 				indices.presentFamily = i;
 
-				if (debug) {
-					std::cout << "Queue Family " << i << " is suitable for presenting\n";
-				}
+				message << "Queue Family " << i << " is suitable for presenting.";
+				vkLogging::Logger::get_logger()->print(message.str());
+				message.str("");
 			}
 
 			if (indices.isComplete()) {

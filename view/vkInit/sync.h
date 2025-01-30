@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "../../config.h"
 
 namespace vkInit {
 
@@ -7,10 +7,9 @@ namespace vkInit {
 		Make a semaphore.
 
 		\param device the logical device
-		\param debug whether the system is running in debug mode
 		\returns the created semaphore
 	*/
-	vk::Semaphore make_semaphore(vk::Device device, bool debug) {
+	vk::Semaphore make_semaphore(vk::Device device) {
 
 		vk::SemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.flags = vk::SemaphoreCreateFlags();
@@ -19,9 +18,7 @@ namespace vkInit {
 			return device.createSemaphore(semaphoreInfo);
 		}
 		catch (vk::SystemError err) {
-			if (debug) {
-				std::cout << "Failed to create semaphore " << std::endl;
-			}
+			vkLogging::Logger::get_logger()->print("Failed to create semaphore ");
 			return nullptr;
 		}
 	}
@@ -30,10 +27,9 @@ namespace vkInit {
 		Make a fence.
 
 		\param device the logical device
-		\param debug whether the system is running in debug mode
 		\returns the created fence
 	*/
-	vk::Fence make_fence(vk::Device device, bool debug) {
+	vk::Fence make_fence(vk::Device device) {
 
 		vk::FenceCreateInfo fenceInfo = {};
 		fenceInfo.flags = vk::FenceCreateFlags() | vk::FenceCreateFlagBits::eSignaled;
@@ -42,9 +38,7 @@ namespace vkInit {
 			return device.createFence(fenceInfo);
 		}
 		catch (vk::SystemError err) {
-			if (debug) {
-				std::cout << "Failed to create fence " << std::endl;
-			}
+			vkLogging::Logger::get_logger()->print("Failed to create fence ");
 			return nullptr;
 		}
 	}

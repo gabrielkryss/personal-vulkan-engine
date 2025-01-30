@@ -1,23 +1,20 @@
 #pragma once
-#include "config.h"
-#include "frame.h"
-#include "scene.h"
-#include "triangle_mesh.h"
+#include "../config.h"
+#include "vkUtil/frame.h"
+#include "../model/scene.h"
+#include "../model/vertex_menagerie.h"
 
 class Engine {
 
 public:
 
-	Engine(int width, int height, GLFWwindow* window, bool debug);
+	Engine(int width, int height, GLFWwindow* window);
 
 	~Engine();
 
 	void render(Scene* scene);
 
 private:
-
-	//whether to print debug messages in functions
-	bool debugMode = true;
 
 	//glfw-related variables
 	int width;
@@ -53,7 +50,7 @@ private:
 	int maxFramesInFlight, frameNumber;
 
 	//asset pointers
-	TriangleMesh* triangleMesh;
+	VertexMenagerie* meshes;
 
 	//instance setup
 	void make_instance();

@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "../../config.h"
 
 namespace vkUtil {
 
@@ -10,12 +10,14 @@ namespace vkUtil {
 		\param debug whether the system is running in debug mode
 		\returns the contents as a vector of raw binary characters
 	*/
-	std::vector<char> readFile(std::string filename, bool debug) {
-		
+	std::vector<char> readFile(std::string filename) {
+
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
-		if (debug && !file.is_open()) {
-			std::cout << "Failed to load \"" << filename << "\"" << std::endl;
+		if (!file.is_open()) {
+			std::stringstream message;
+			message << "Failed to load \"" << filename << "\"";
+			vkLogging::Logger::get_logger()->print(message.str());
 		}
 
 		size_t filesize{ static_cast<size_t>(file.tellg()) };
@@ -36,9 +38,9 @@ namespace vkUtil {
 		\param debug whether the system is running in debug mode
 		\returns the created shader module
 	*/
-	vk::ShaderModule createModule(std::string filename, vk::Device device, bool debug) {
+	vk::ShaderModule createModule(std::string filename, vk::Device device) {
 
-		std::vector<char> sourceCode = readFile(filename, debug);
+		std::vector<char> sourceCode = readFile(filename);
 		vk::ShaderModuleCreateInfo moduleInfo = {};
 		moduleInfo.flags = vk::ShaderModuleCreateFlags();
 		moduleInfo.codeSize = sourceCode.size();
@@ -48,9 +50,9 @@ namespace vkUtil {
 			return device.createShaderModule(moduleInfo);
 		}
 		catch (vk::SystemError err) {
-			if (debug) {
-				std::cout << "Failed to create shader module for \"" << filename << "\"" << std::endl;
-			}
+			std::stringstream message;
+			message << "Failed to create shader module for \"" << filename << "\"";
+			vkLogging::Logger::get_logger()->print(message.str());
 		}
 	}
 }
