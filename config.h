@@ -21,9 +21,10 @@
 */
 struct BufferInputChunk {
 	size_t size;
-	vk::BufferUsageFlagBits usage;
+	vk::BufferUsageFlags usage;
 	vk::Device logicalDevice;
 	vk::PhysicalDevice physicalDevice;
+	vk::MemoryPropertyFlags memoryProperties;
 };
 
 /**

@@ -30,4 +30,15 @@ namespace vkUtil {
 		\returns the created buffer
 	*/
 	Buffer createBuffer(BufferInputChunk input);
+
+	/**
+		Copy a buffer.
+
+		\param srcBuffer the buffer to copy from
+		\param dstBuffer the buffer to copy to
+		\param size the size (in bytes) to copy
+		\param queue on which to submit the job
+		\param commandBuffer the command buffer on which to record the job
+	*/
+	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, vk::DeviceSize size, vk::Queue queue, vk::CommandBuffer commandBuffer);
 }

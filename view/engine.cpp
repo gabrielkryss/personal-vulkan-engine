@@ -206,7 +206,12 @@ void Engine::make_assets() {
 	type = meshTypes::STAR;
 	meshes->consume(type, vertices);
 
-	meshes->finalize(device, physicalDevice);
+	vertexBufferFinalizationChunk finalizationInfo;
+	finalizationInfo.logicalDevice = device;
+	finalizationInfo.physicalDevice = physicalDevice;
+	finalizationInfo.commandBuffer = mainCommandBuffer;
+	finalizationInfo.queue = graphicsQueue;
+	meshes->finalize(finalizationInfo);
 }
 
 void Engine::prepare_scene(vk::CommandBuffer commandBuffer) {
