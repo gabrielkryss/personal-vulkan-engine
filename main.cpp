@@ -119,10 +119,10 @@ int main() {
   // Clean up Vulkan instance
   vkDestroyInstance(instance, nullptr);
 
-	App* myApp = new App(640, 480, true);
+  App *myApp = new App(640, 480, true);
 
-	myApp->run();
-	delete myApp;
+  myApp->run();
+  delete myApp;
 
-	return 0;
+  return 0;
 }
