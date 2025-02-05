@@ -20,7 +20,7 @@ Engine::Engine(int width, int height, GLFWwindow* window) {
 
 	make_device();
 
-	make_descriptor_set_layout();
+	make_descriptor_set_layouts();
 	make_pipeline();
 
 	finalize_setup();
@@ -97,8 +97,9 @@ void Engine::recreate_swapchain() {
 
 }
 
-void Engine::make_descriptor_set_layout() {
+void Engine::make_descriptor_set_layouts() {
 
+	//Binding once per frame
 	vkInit::descriptorSetLayoutData bindings;
 	bindings.count = 2;
 
@@ -112,7 +113,17 @@ void Engine::make_descriptor_set_layout() {
 	bindings.counts.push_back(1);
 	bindings.stages.push_back(vk::ShaderStageFlagBits::eVertex);
 
-	descriptorSetLayout = vkInit::make_descriptor_set_layout(device, bindings);
+	frameSetLayout = vkInit::make_descriptor_set_layout(device, bindings);
+
+	//Binding for individual draw calls
+	bindings.count = 1;
+
+	bindings.indices[0] = 0;
+	bindings.types[0] = vk::DescriptorType::eCombinedImageSampler;
+	bindings.counts[0] = 1;
+	bindings.stages[0] = vk::ShaderStageFlagBits::eFragment;
+
+	meshSetLayout = vkInit::make_descriptor_set_layout(device, bindings);
 }
 
 void Engine::make_pipeline() {
@@ -123,7 +134,7 @@ void Engine::make_pipeline() {
 	specification.fragmentFilepath = "../shaders/fragment.spv";
 	specification.swapchainExtent = swapchainExtent;
 	specification.swapchainImageFormat = swapchainFormat;
-	specification.descriptorSetLayout = descriptorSetLayout;
+	specification.descriptorSetLayouts = { frameSetLayout, meshSetLayout };
 
 	vkInit::GraphicsPipelineOutBundle output = vkInit::create_graphics_pipeline(
 		specification
@@ -169,7 +180,7 @@ void Engine::make_frame_resources() {
 	bindings.types.push_back(vk::DescriptorType::eUniformBuffer);
 	bindings.types.push_back(vk::DescriptorType::eStorageBuffer);
 
-	descriptorPool = vkInit::make_descriptor_pool(device, static_cast<uint32_t>(swapchainFrames.size()), bindings);
+	frameDescriptorPool = vkInit::make_descriptor_pool(device, static_cast<uint32_t>(swapchainFrames.size()), bindings);
 
 	for (vkUtil::SwapChainFrame& frame : swapchainFrames) {
 
@@ -179,59 +190,60 @@ void Engine::make_frame_resources() {
 
 		frame.make_descriptor_resources(device, physicalDevice);
 
-		frame.descriptorSet = vkInit::allocate_descriptor_set(device, descriptorPool, descriptorSetLayout);
+		frame.descriptorSet = vkInit::allocate_descriptor_set(device, frameDescriptorPool, frameSetLayout);
 	}
 
 }
 
 void Engine::make_assets() {
 
+	//Meshes
 	meshes = new VertexMenagerie();
 
 	std::vector<float> vertices = { {
-		 0.0f, -0.05f, 0.0f, 1.0f, 0.0f,
-		 0.05f, 0.05f, 0.0f, 1.0f, 0.0f,
-		-0.05f, 0.05f, 0.0f, 1.0f, 0.0f
+		 0.0f, -0.1f, 0.0f, 1.0f, 0.0f, 0.5f, 0.0f,
+		 0.1f, 0.1f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+		-0.1f, 0.1f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 	} };
 	meshTypes type = meshTypes::TRIANGLE;
 	meshes->consume(type, vertices);
 	
 	vertices = { {
-		-0.05f,  0.05f, 1.0f, 0.0f, 0.0f,
-		-0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
-		 0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
-		 0.05f, -0.05f, 1.0f, 0.0f, 0.0f,
-		 0.05f,  0.05f, 1.0f, 0.0f, 0.0f,
-		-0.05f,  0.05f, 1.0f, 0.0f, 0.0f
+		-0.1f,  0.1f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		-0.1f, -0.1f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		 0.1f, -0.1f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		 0.1f, -0.1f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		 0.1f,  0.1f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		-0.1f,  0.1f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
 	} };
 	type = meshTypes::SQUARE;
 	meshes->consume(type, vertices);
 
 	vertices = { {
-		-0.05f, -0.025f, 0.0f, 0.0f, 1.0f,
-		-0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		-0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		-0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		  0.0f,  -0.05f, 0.0f, 0.0f, 1.0f,
-		 0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		-0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		-0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		 0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		 0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		 0.05f, -0.025f, 0.0f, 0.0f, 1.0f,
-		 0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		-0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		 0.02f, -0.025f, 0.0f, 0.0f, 1.0f,
-		 0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		 0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		 0.04f,   0.05f, 0.0f, 0.0f, 1.0f,
-		  0.0f,   0.01f, 0.0f, 0.0f, 1.0f,
-		-0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		 0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		  0.0f,   0.01f, 0.0f, 0.0f, 1.0f,
-		-0.03f,    0.0f, 0.0f, 0.0f, 1.0f,
-		  0.0f,   0.01f, 0.0f, 0.0f, 1.0f,
-		-0.04f,   0.05f, 0.0f, 0.0f, 1.0f
+		 -0.1f, -0.05f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f,
+		-0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.3f, 0.25f,
+		-0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.2f,  0.5f,
+		-0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.3f, 0.25f,
+		  0.0f,  -0.1f, 0.0f, 0.0f, 1.0f, 0.5f,  0.0f,
+		 0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.7f, 0.25f,
+		-0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.2f,  0.5f,
+		-0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.3f, 0.25f,
+		 0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.7f, 0.25f,
+		 0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.7f, 0.25f,
+		  0.1f, -0.05f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f,
+		 0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.8f,  0.5f,
+		-0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.2f,  0.5f,
+		 0.04f, -0.05f, 0.0f, 0.0f, 1.0f, 0.7f, 0.25f,
+		 0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.8f,  0.5f,
+		 0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.8f,  0.5f,
+		 0.08f,   0.1f, 0.0f, 0.0f, 1.0f, 0.9f,  1.0f,
+		  0.0f,  0.02f, 0.0f, 0.0f, 1.0f, 0.5f,  0.6f,
+		-0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.2f,  0.5f,
+		 0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.8f,  0.5f,
+		  0.0f,  0.02f, 0.0f, 0.0f, 1.0f, 0.5f,  0.6f,
+		-0.06f,   0.0f, 0.0f, 0.0f, 1.0f, 0.2f,  0.5f,
+		  0.0f,  0.02f, 0.0f, 0.0f, 1.0f, 0.5f,  0.6f,
+		-0.08f,   0.1f, 0.0f, 0.0f, 1.0f, 0.1f,  1.0f
 	} };
 	type = meshTypes::STAR;
 	meshes->consume(type, vertices);
@@ -242,6 +254,36 @@ void Engine::make_assets() {
 	finalizationInfo.commandBuffer = mainCommandBuffer;
 	finalizationInfo.queue = graphicsQueue;
 	meshes->finalize(finalizationInfo);
+
+	//Materials
+
+	std::unordered_map<meshTypes, const char*> filenames = { 
+		{meshTypes::TRIANGLE, "../tex/face.jpg"}, 
+		{meshTypes::SQUARE, "../tex/haus.jpg"}, 
+		{meshTypes::STAR, "../tex/noroi.png"}
+	};
+
+	//Make a descriptor pool to allocate sets.
+	vkInit::descriptorSetLayoutData bindings;
+	bindings.count = 1;
+	bindings.types.push_back(vk::DescriptorType::eCombinedImageSampler);
+
+	meshDescriptorPool = vkInit::make_descriptor_pool(device, static_cast<uint32_t>(filenames.size()), bindings);
+	//meshDescriptorPool = vkInit::make_descriptor_pool(device, 3, bindings);
+
+	vkImage::TextureInputChunk textureInfo;
+	textureInfo.commandBuffer = mainCommandBuffer;
+	textureInfo.queue = graphicsQueue;
+	textureInfo.logicalDevice = device;
+	textureInfo.physicalDevice = physicalDevice;
+	textureInfo.layout = meshSetLayout;
+	textureInfo.descriptorPool = meshDescriptorPool;
+
+	for (const auto & [object, filename] : filenames) {
+		textureInfo.filename = filename;
+		materials[object] = new vkImage::Texture(textureInfo);
+	}
+
 }
 
 void Engine::prepare_frame(uint32_t imageIndex, Scene* scene) {
@@ -313,27 +355,21 @@ void Engine::record_draw_commands(vk::CommandBuffer commandBuffer, uint32_t imag
 
 	prepare_scene(commandBuffer);
 
-	//Triangles
-	int vertexCount = meshes->sizes.find(meshTypes::TRIANGLE)->second;
-	int firstVertex = meshes->offsets.find(meshTypes::TRIANGLE)->second;
 	uint32_t startInstance = 0;
-	uint32_t instanceCount = static_cast<uint32_t>(scene->trianglePositions.size());
-	commandBuffer.draw(vertexCount, instanceCount, firstVertex, startInstance);
-	startInstance += instanceCount;
+	//Triangles
+	render_objects(
+		commandBuffer, meshTypes::TRIANGLE, startInstance, static_cast<uint32_t>(scene->trianglePositions.size())
+	);
 
 	//Squares
-	vertexCount = meshes->sizes.find(meshTypes::SQUARE)->second;
-	firstVertex = meshes->offsets.find(meshTypes::SQUARE)->second;
-	instanceCount = static_cast<uint32_t>(scene->squarePositions.size());
-	commandBuffer.draw(vertexCount, instanceCount, firstVertex, startInstance);
-	startInstance += instanceCount;
+	render_objects(
+		commandBuffer, meshTypes::SQUARE, startInstance, static_cast<uint32_t>(scene->squarePositions.size())
+	);
 
 	//Stars
-	vertexCount = meshes->sizes.find(meshTypes::STAR)->second;
-	firstVertex = meshes->offsets.find(meshTypes::STAR)->second;
-	instanceCount = static_cast<uint32_t>(scene->starPositions.size());
-	commandBuffer.draw(vertexCount, instanceCount, firstVertex, startInstance);
-	startInstance += instanceCount;
+	render_objects(
+		commandBuffer, meshTypes::STAR, startInstance, static_cast<uint32_t>(scene->starPositions.size())
+	);
 
 	commandBuffer.endRenderPass();
 
@@ -344,6 +380,15 @@ void Engine::record_draw_commands(vk::CommandBuffer commandBuffer, uint32_t imag
 		
 		vkLogging::Logger::get_logger()->print("failed to record command buffer!");
 	}
+}
+
+void Engine::render_objects(vk::CommandBuffer commandBuffer, meshTypes objectType, uint32_t& startInstance, uint32_t instanceCount) {
+
+	int vertexCount = meshes->sizes.find(objectType)->second;
+	int firstVertex = meshes->offsets.find(objectType)->second;
+	materials[objectType]->use(commandBuffer, pipelineLayout);
+	commandBuffer.draw(vertexCount, instanceCount, firstVertex, startInstance);
+	startInstance += instanceCount;
 }
 
 void Engine::render(Scene* scene) {
@@ -455,7 +500,7 @@ void Engine::cleanup_swapchain() {
 	}
 	device.destroySwapchainKHR(swapchain);
 
-	device.destroyDescriptorPool(descriptorPool);
+	device.destroyDescriptorPool(frameDescriptorPool);
 
 }
 
@@ -473,9 +518,15 @@ Engine::~Engine() {
 
 	cleanup_swapchain();
 
-	device.destroyDescriptorSetLayout(descriptorSetLayout);
+	device.destroyDescriptorSetLayout(frameSetLayout);
+	device.destroyDescriptorSetLayout(meshSetLayout);
+	device.destroyDescriptorPool(meshDescriptorPool);
 
 	delete meshes;
+
+	for (const auto& [key, texture] : materials) {
+		delete texture;
+	}
 
 	device.destroy();
 

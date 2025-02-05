@@ -31,6 +31,9 @@ add_executable(${PROJECT_NAME}
   view/vkUtil/memory.cpp
   control/logging.cpp
   model/vertex_menagerie.cpp
+  view/vkImage/image.cpp
+  view/vkUtil/single_time_commands.cpp
+  view/vkInit/descriptors.cpp
 )
 
 # Add header and interface files
@@ -55,6 +58,9 @@ target_sources(${PROJECT_NAME} PRIVATE
   view/vkUtil/memory.h
   view/vkMesh/mesh.h
   model/vertex_menagerie.h
+  view/vkImage/image.h
+  view/vkImage/stb_image.h
+  view/vkUtil/single_time_commands.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

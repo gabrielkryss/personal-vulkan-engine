@@ -1,4 +1,5 @@
 #include "memory.h"
+#include "single_time_commands.h"
 
 uint32_t vkUtil::findMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t supportedMemoryIndices, vk::MemoryPropertyFlags requestedProperties) {
 
@@ -91,11 +92,7 @@ Buffer vkUtil::createBuffer(BufferInputChunk input) {
 
 void vkUtil::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, vk::DeviceSize size, vk::Queue queue, vk::CommandBuffer commandBuffer) {
 
-	commandBuffer.reset();
-
-	vk::CommandBufferBeginInfo beginInfo;
-	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-	commandBuffer.begin(beginInfo);
+	vkUtil::startJob(commandBuffer);
 
 	/*
 	* // Provided by VK_VERSION_1_0
@@ -111,11 +108,5 @@ void vkUtil::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, vk::DeviceSize siz
 	copyRegion.size = size;
 	commandBuffer.copyBuffer(srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
 
-	commandBuffer.end();
-
-	vk::SubmitInfo submitInfo;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
-	queue.submit(1, &submitInfo, nullptr);
-	queue.waitIdle();
+	vkUtil::endJob(commandBuffer, queue);
 }

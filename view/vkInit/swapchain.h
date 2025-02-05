@@ -1,7 +1,9 @@
+
 #pragma once
 #include "../../config.h"
 #include "../vkUtil/queue_families.h"
 #include "../vkUtil/frame.h"
+#include "../vkImage/image.h"
 
 namespace vkInit {
 
@@ -269,37 +271,8 @@ namespace vkInit {
 
 		for (size_t i = 0; i < images.size(); ++i) {
 
-			/*
-			* ImageViewCreateInfo( VULKAN_HPP_NAMESPACE::ImageViewCreateFlags flags_ = {},
-                           VULKAN_HPP_NAMESPACE::Image                image_ = {},
-                           VULKAN_HPP_NAMESPACE::ImageViewType    viewType_  = VULKAN_HPP_NAMESPACE::ImageViewType::e1D,
-                           VULKAN_HPP_NAMESPACE::Format           format_    = VULKAN_HPP_NAMESPACE::Format::eUndefined,
-                           VULKAN_HPP_NAMESPACE::ComponentMapping components_            = {},
-                           VULKAN_HPP_NAMESPACE::ImageSubresourceRange subresourceRange_ = {} ) VULKAN_HPP_NOEXCEPT
-				: flags( flags_ )
-				, image( image_ )
-				, viewType( viewType_ )
-				, format( format_ )
-				, components( components_ )
-				, subresourceRange( subresourceRange_ )
-			*/
-
-			vk::ImageViewCreateInfo createInfo = {};
-			createInfo.image = images[i];
-			createInfo.viewType = vk::ImageViewType::e2D;
-			createInfo.format = format.format;
-			createInfo.components.r = vk::ComponentSwizzle::eIdentity;
-			createInfo.components.g = vk::ComponentSwizzle::eIdentity;
-			createInfo.components.b = vk::ComponentSwizzle::eIdentity;
-			createInfo.components.a = vk::ComponentSwizzle::eIdentity;
-			createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-			createInfo.subresourceRange.baseMipLevel = 0;
-			createInfo.subresourceRange.levelCount = 1;
-			createInfo.subresourceRange.baseArrayLayer = 0;
-			createInfo.subresourceRange.layerCount = 1;
-
 			bundle.frames[i].image = images[i];
-			bundle.frames[i].imageView = logicalDevice.createImageView(createInfo);
+			bundle.frames[i].imageView = vkImage::make_image_view(logicalDevice, images[i], format.format);
 		}
 
 		bundle.format = format.format;

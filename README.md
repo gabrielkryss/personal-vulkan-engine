@@ -16,8 +16,15 @@ Welcome to my personal Vulkan engine project! This repository is my playground f
 - [x] Implement multithreaded rendering by having more semaphores and fences owned by images.
 - [x] Draw a triangle on the screen.
 - [x] Draw multiple triangles on the screen.
+- [x] Textures
 - [ ] ......
-- [ ] Textures
+- [ ] Depth Buffering
+- [ ] ......
+- [ ] Loading 3D models assets
+- [ ] ......
+- [ ] Directional Lights
+- [ ] ......
+- [ ] Cubemaps
 - [ ] ......
 - [ ] Support DX12 (would have to rename the project at this point)
 - [ ] Construct ray tracing pipeline
@@ -39,7 +46,7 @@ Welcome to my personal Vulkan engine project! This repository is my playground f
 
 ## How to run
 
-To get started with this project, clone the repository and follow the setup instructions provided in the respective directories. Feedback is always welcome! 
+To get started with this project, clone the repository and follow the setup instructions provided in the respective directories. Feedback is always welcome!
 
 ### Requirements
 
@@ -49,23 +56,33 @@ Install Vulkan SDK from LunarG. Disclaimer I have only tested this project on Wi
 git clone [https://github.com/your-username/vulkan-engine.git](https://github.com/gabrielkryss/personal-vulkan-engine.git)
 cd personal-vulkan-engine/
 ```
+
 I use conan2 to install dependencies
+
 ```sh
 conan install . --profile="custom_conan_profile" --build=missing 
 ```
+
 go into the build directory
+
 ```sh
 cd build
 ```
+
 Generate build scripts
+
 ```sh
 cmake .. -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE="generators/conan_toolchain.cmake"
 ```
+
 Build the project
+
 ```sh
 cmake --build . --config Release --clean-first
 ```
+
 Run executable
+
 ```
 ./Release/MyProject.exe
 ```
