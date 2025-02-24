@@ -27,7 +27,7 @@ namespace vkMesh {
 	/**
 		\returns the input attribute descriptions for a (vec2 pos, vec3 color, vec2 texcoords) vertex format.
 	*/
-	std::array<vk::VertexInputAttributeDescription,3> getPosColorAttributeDescriptions() {
+	std::vector<vk::VertexInputAttributeDescription> getPosColorAttributeDescriptions() {
 
 		/* Provided by VK_VERSION_1_0
 		typedef struct VkVertexInputAttributeDescription {
@@ -38,7 +38,11 @@ namespace vkMesh {
 		} VkVertexInputAttributeDescription;
 		*/
 
-		std::array<vk::VertexInputAttributeDescription, 3> attributes;
+		std::vector<vk::VertexInputAttributeDescription> attributes;
+		vk::VertexInputAttributeDescription dummy;
+		attributes.push_back(dummy);
+		attributes.push_back(dummy);
+		attributes.push_back(dummy);
 
 		//Pos
 		attributes[0].binding = 0;

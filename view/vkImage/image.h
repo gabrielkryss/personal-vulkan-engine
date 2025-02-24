@@ -1,145 +1,154 @@
 #pragma once
-#include "../../config.h"
 #include "stb_image.h"
+#include "../../config.h"
 
 namespace vkImage {
 
-/**
-        For making the Image class
-*/
-struct TextureInputChunk {
-  vk::Device logicalDevice;
-  vk::PhysicalDevice physicalDevice;
-  const char *filename;
-  vk::CommandBuffer commandBuffer;
-  vk::Queue queue;
-  vk::DescriptorSetLayout layout;
-  vk::DescriptorPool descriptorPool;
-};
+	/**
+		For making the Image class
+	*/
+	struct TextureInputChunk {
+		vk::Device logicalDevice;
+		vk::PhysicalDevice physicalDevice;
+		const char* filename;
+		vk::CommandBuffer commandBuffer;
+		vk::Queue queue;
+		vk::DescriptorSetLayout layout;
+		vk::DescriptorPool descriptorPool;
+	};
 
-/**
-        For making individual vulkan images
-*/
-struct ImageInputChunk {
-  vk::Device logicalDevice;
-  vk::PhysicalDevice physicalDevice;
-  int width, height;
-  vk::ImageTiling tiling;
-  vk::ImageUsageFlags usage;
-  vk::MemoryPropertyFlags memoryProperties;
-};
+	/**
+		For making individual vulkan images
+	*/
+	struct ImageInputChunk {
+		vk::Device logicalDevice;
+		vk::PhysicalDevice physicalDevice;
+		int width, height;
+		vk::ImageTiling tiling;
+		vk::ImageUsageFlags usage;
+		vk::MemoryPropertyFlags memoryProperties;
+		vk::Format format;
+	};
 
-/**
-        For transitioning image layouts
-*/
-struct ImageLayoutTransitionJob {
-  vk::CommandBuffer commandBuffer;
-  vk::Queue queue;
-  vk::Image image;
-  vk::ImageLayout oldLayout, newLayout;
-};
+	/**
+		For transitioning image layouts
+	*/
+	struct ImageLayoutTransitionJob {
+		vk::CommandBuffer commandBuffer;
+		vk::Queue queue;
+		vk::Image image;
+		vk::ImageLayout oldLayout, newLayout;
+	};
 
-/**
-        For copying a buffer to an image
-*/
-struct BufferImageCopyJob {
-  vk::CommandBuffer commandBuffer;
-  vk::Queue queue;
-  vk::Buffer srcBuffer;
-  vk::Image dstImage;
-  int width, height;
-};
+	/**
+		For copying a buffer to an image
+	*/
+	struct BufferImageCopyJob {
+		vk::CommandBuffer commandBuffer;
+		vk::Queue queue;
+		vk::Buffer srcBuffer;
+		vk::Image dstImage;
+		int width, height;
+	};
 
-class Texture {
+	class Texture {
 
-public:
-  Texture(TextureInputChunk input);
+	public:
+		
+		Texture(TextureInputChunk input);
 
-  void use(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout);
+		void use(vk::CommandBuffer commandBuffer, vk::PipelineLayout pipelineLayout);
 
-  ~Texture();
+		~Texture();
 
-private:
-  int width, height, channels;
-  vk::Device logicalDevice;
-  vk::PhysicalDevice physicalDevice;
-  const char *filename;
-  stbi_uc *pixels;
+	private:
 
-  // Resources
-  vk::Image image;
-  vk::DeviceMemory imageMemory;
-  vk::ImageView imageView;
-  vk::Sampler sampler;
+		int width, height, channels;
+		vk::Device logicalDevice;
+		vk::PhysicalDevice physicalDevice;
+		const char* filename;
+		stbi_uc* pixels;
 
-  // Resource Descriptors
-  vk::DescriptorSetLayout layout;
-  vk::DescriptorSet descriptorSet;
-  vk::DescriptorPool descriptorPool;
+		//Resources
+		vk::Image image;
+		vk::DeviceMemory imageMemory;
+		vk::ImageView imageView;
+		vk::Sampler sampler;
 
-  vk::CommandBuffer commandBuffer;
-  vk::Queue queue;
+		//Resource Descriptors
+		vk::DescriptorSetLayout layout;
+		vk::DescriptorSet descriptorSet;
+		vk::DescriptorPool descriptorPool;
 
-  /**
-          Load the raw image data from the internally set filepath.
-  */
-  void load();
+		vk::CommandBuffer commandBuffer;
+		vk::Queue queue;
 
-  /**
-          Send loaded data to the image. The image must be loaded before calling
-          this function.
-  */
-  void populate();
+		/**
+			Load the raw image data from the internally set filepath.
+		*/
+		void load();
 
-  /**
-          Create a view of the texture. The image must be populated before
-     calling this function.
-  */
-  void make_view();
+		/**
+			Send loaded data to the image. The image must be loaded before calling
+			this function.
+		*/
+		void populate();
 
-  /**
-          Configure and create a sampler for the texture.
-  */
-  void make_sampler();
+		/**
+			Create a view of the texture. The image must be populated before calling this function.
+		*/
+		void make_view();
 
-  /**
-          Allocate and write the descriptor set. Currently, this is only being
-     done once. This must be called after the image view and sampler have been
-     made.
-  */
-  void make_descriptor_set();
-};
+		/**
+			Configure and create a sampler for the texture.
+		*/
+		void make_sampler();
 
-/**
-        Make a Vulkan Image
-*/
-vk::Image make_image(ImageInputChunk input);
+		/**
+			Allocate and write the descriptor set. Currently, this is only being done once.
+			This must be called after the image view and sampler have been made.
+		*/
+		void make_descriptor_set();
+	};
 
-/**
-        Allocate and bind the backing memory for a Vulkan Image, this memory
-   must be freed upon image destruction.
-*/
-vk::DeviceMemory make_image_memory(ImageInputChunk input, vk::Image image);
+	/**
+		Make a Vulkan Image
+	*/
+	vk::Image make_image(ImageInputChunk input);
 
-/**
-        Transition the layout of an image.
+	/**
+		Allocate and bind the backing memory for a Vulkan Image, this memory must
+		be freed upon image destruction.
+	*/
+	vk::DeviceMemory make_image_memory(ImageInputChunk input, vk::Image image);
 
-        Currently supports:
+	/**
+		Transition the layout of an image.
 
-        undefined -> transfer_dst_optimal,
-        transfer_dst_optimal -> shader_read_only_optimal,
-*/
-void transition_image_layout(ImageLayoutTransitionJob transitionJob);
+		Currently supports:
 
-/**
-        Copy from a buffer to an image. Image must be in the
-   transfer_dst_optimal layout.
-*/
-void copy_buffer_to_image(BufferImageCopyJob copyJob);
+		undefined -> transfer_dst_optimal,
+		transfer_dst_optimal -> shader_read_only_optimal,
+	*/
+	void transition_image_layout(ImageLayoutTransitionJob transitionJob);
 
-/**
-        Create a view of a vulkan image.
-*/
-vk::ImageView make_image_view(vk::Device logicalDevice, vk::Image image,
-                              vk::Format format);
-} // namespace vkImage
+	/**
+		Copy from a buffer to an image. Image must be in the transfer_dst_optimal layout.
+	*/
+	void copy_buffer_to_image(BufferImageCopyJob copyJob);
+
+	/**
+		Create a view of a vulkan image.
+	*/
+	vk::ImageView make_image_view(
+		vk::Device logicalDevice, vk::Image image, vk::Format format,
+		vk::ImageAspectFlags aspect);
+
+	/**
+		\returns an image format supporting the requested tiling and features
+	*/
+	vk::Format find_supported_format(
+		vk::PhysicalDevice physicalDevice,
+		const std::vector<vk::Format>& candidates, 
+		vk::ImageTiling tiling, vk::FormatFeatureFlags features);
+}

@@ -14,7 +14,7 @@ namespace vkInit {
 		std::string vertexFilepath;
 		std::string fragmentFilepath;
 		vk::Extent2D swapchainExtent;
-		vk::Format swapchainImageFormat;
+		vk::Format swapchainImageFormat, depthFormat;
 		std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 	};
 
@@ -46,7 +46,7 @@ namespace vkInit {
 	*/
 	vk::PipelineVertexInputStateCreateInfo make_vertex_input_info(
 		const vk::VertexInputBindingDescription& bindingDescription,
-		const std::array<vk::VertexInputAttributeDescription, 3>& attributeDescriptions);
+		const std::vector<vk::VertexInputAttributeDescription>& attributeDescriptions);
 
 	/**
 		\returns the input assembly stage creation info
@@ -126,7 +126,9 @@ namespace vkInit {
 		\param swapchainImageFormat the image format chosen for the swapchain images
 		\returns the created renderpass
 	*/
-	vk::RenderPass make_renderpass(vk::Device device, vk::Format swapchainImageFormat);
+	vk::RenderPass make_renderpass(
+		vk::Device device, vk::Format swapchainImageFormat, vk::Format depthFormat
+	);
 
 	/**
 		Make a color attachment description
@@ -142,12 +144,27 @@ namespace vkInit {
 	vk::AttachmentReference make_color_attachment_reference();
 
 	/**
+		Make a depth attachment description
+
+		\param swapchainImageFormat the image format used by the swapchain
+		\returns a description of the corresponding depth attachment
+	*/
+	vk::AttachmentDescription make_depth_attachment(const vk::Format& depthFormat);
+
+	/**
+		\returns Make a depth attachment refernce
+	*/
+	vk::AttachmentReference make_depth_attachment_reference();
+
+	/**
 		Make a simple subpass.
 
 		\param colorAttachmentRef a reference to a color attachment for the color buffer
 		\returns a description of the subpass
 	*/
-	vk::SubpassDescription make_subpass(const vk::AttachmentReference& colorAttachmentRef);
+	vk::SubpassDescription make_subpass(
+		const std::vector<vk::AttachmentReference>& attachments
+	);
 
 	/**
 		Make a simple renderpass.
@@ -157,7 +174,9 @@ namespace vkInit {
 		\returns creation info for the renderpass
 	*/
 	vk::RenderPassCreateInfo make_renderpass_info(
-		const vk::AttachmentDescription& colorAttachment, const vk::SubpassDescription& subpass);
+		const std::vector<vk::AttachmentDescription>& attachments, 
+		const vk::SubpassDescription& subpass
+	);
 
 	GraphicsPipelineOutBundle create_graphics_pipeline(GraphicsPipelineInBundle& specification) {
 		/*
@@ -173,7 +192,7 @@ namespace vkInit {
 
 		//Vertex Input
 		vk::VertexInputBindingDescription bindingDescription = vkMesh::getPosColorBindingDescription();
-		std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = vkMesh::getPosColorAttributeDescriptions();
+		std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = vkMesh::getPosColorAttributeDescriptions();
 		vk::PipelineVertexInputStateCreateInfo vertexInputInfo = make_vertex_input_info(bindingDescription, attributeDescriptions);
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 
@@ -210,6 +229,16 @@ namespace vkInit {
 		pipelineInfo.stageCount = shaderStages.size();
 		pipelineInfo.pStages = shaderStages.data();
 
+		//Depth-Stencil
+		vk::PipelineDepthStencilStateCreateInfo depthState;
+		depthState.flags = vk::PipelineDepthStencilStateCreateFlags();
+		depthState.depthTestEnable = true;
+		depthState.depthWriteEnable = true;
+		depthState.depthCompareOp = vk::CompareOp::eLess;
+		depthState.depthBoundsTestEnable = false;
+		depthState.stencilTestEnable = false;
+		pipelineInfo.pDepthStencilState = &depthState;
+
 		//Multisampling
 		vk::PipelineMultisampleStateCreateInfo multisampling = make_multisampling_info();
 		pipelineInfo.pMultisampleState = &multisampling;
@@ -227,7 +256,8 @@ namespace vkInit {
 		//Renderpass
 		vkLogging::Logger::get_logger()->print("Create RenderPass");
 		vk::RenderPass renderpass = make_renderpass(
-			specification.device, specification.swapchainImageFormat
+			specification.device, specification.swapchainImageFormat, 
+			specification.depthFormat
 		);
 		pipelineInfo.renderPass = renderpass;
 		pipelineInfo.subpass = 0;
@@ -259,7 +289,7 @@ namespace vkInit {
 
 	vk::PipelineVertexInputStateCreateInfo make_vertex_input_info(
 		const vk::VertexInputBindingDescription& bindingDescription,
-		const std::array<vk::VertexInputAttributeDescription, 3>& attributeDescriptions) {
+		const std::vector<vk::VertexInputAttributeDescription>& attributeDescriptions) {
 
 		vk::PipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.flags = vk::PipelineVertexInputStateCreateFlags();
@@ -404,19 +434,25 @@ namespace vkInit {
 		}
 	}
 
-	vk::RenderPass make_renderpass(vk::Device device, vk::Format swapchainImageFormat) {
+	vk::RenderPass make_renderpass(
+		vk::Device device, vk::Format swapchainImageFormat, vk::Format depthFormat) {
 
-		//Define a general attachment, with its load/store operations
-		vk::AttachmentDescription colorAttachment = make_color_attachment(swapchainImageFormat);
+		std::vector<vk::AttachmentDescription> attachments;
+		std::vector<vk::AttachmentReference> attachmentReferences;
 
-		//Declare that attachment to be color buffer 0 of the framebuffer
-		vk::AttachmentReference colorAttachmentRef = make_color_attachment_reference();
+		//Color Buffer
+		attachments.push_back(make_color_attachment(swapchainImageFormat));
+		attachmentReferences.push_back(make_color_attachment_reference());
+
+		//Depth Buffer
+		attachments.push_back(make_depth_attachment(depthFormat));
+		attachmentReferences.push_back(make_depth_attachment_reference());
 
 		//Renderpasses are broken down into subpasses, there's always at least one.
-		vk::SubpassDescription subpass = make_subpass(colorAttachmentRef);
+		vk::SubpassDescription subpass = make_subpass(attachmentReferences);
 
 		//Now create the renderpass
-		vk::RenderPassCreateInfo renderpassInfo = make_renderpass_info(colorAttachment, subpass);
+		vk::RenderPassCreateInfo renderpassInfo = make_renderpass_info(attachments, subpass);
 		try {
 			return device.createRenderPass(renderpassInfo);
 		}
@@ -451,23 +487,52 @@ namespace vkInit {
 		return colorAttachmentRef;
 	}
 
-	vk::SubpassDescription make_subpass(const vk::AttachmentReference& colorAttachmentRef) {
+	vk::AttachmentDescription make_depth_attachment(const vk::Format& depthFormat) {
+
+		vk::AttachmentDescription depthAttachment = {};
+		depthAttachment.flags = vk::AttachmentDescriptionFlags();
+		depthAttachment.format = depthFormat;
+		depthAttachment.samples = vk::SampleCountFlagBits::e1;
+		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+		depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
+		depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+		depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+		depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+		depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+		return depthAttachment;
+	}
+
+	vk::AttachmentReference make_depth_attachment_reference() {
+
+		vk::AttachmentReference depthAttachmentRef = {};
+		depthAttachmentRef.attachment = 1;
+		depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+		return depthAttachmentRef;
+	}
+
+	vk::SubpassDescription make_subpass(
+		const std::vector<vk::AttachmentReference>& attachments) {
 
 		vk::SubpassDescription subpass = {};
 		subpass.flags = vk::SubpassDescriptionFlags();
 		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachmentRef;
+		subpass.pColorAttachments = &attachments[0];
+		subpass.pDepthStencilAttachment = &attachments[1];
 
 		return subpass;
 	}
 
-	vk::RenderPassCreateInfo make_renderpass_info(const vk::AttachmentDescription& colorAttachment, const vk::SubpassDescription& subpass) {
+	vk::RenderPassCreateInfo make_renderpass_info(
+		const std::vector<vk::AttachmentDescription>& attachments, 
+		const vk::SubpassDescription& subpass) {
 
 		vk::RenderPassCreateInfo renderpassInfo = {};
 		renderpassInfo.flags = vk::RenderPassCreateFlags();
-		renderpassInfo.attachmentCount = 1;
-		renderpassInfo.pAttachments = &colorAttachment;
+		renderpassInfo.attachmentCount = attachments.size();
+		renderpassInfo.pAttachments = attachments.data();
 		renderpassInfo.subpassCount = 1;
 		renderpassInfo.pSubpasses = &subpass;
 

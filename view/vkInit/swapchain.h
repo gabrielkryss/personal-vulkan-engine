@@ -1,4 +1,3 @@
-
 #pragma once
 #include "../../config.h"
 #include "../vkUtil/queue_families.h"
@@ -272,7 +271,9 @@ namespace vkInit {
 		for (size_t i = 0; i < images.size(); ++i) {
 
 			bundle.frames[i].image = images[i];
-			bundle.frames[i].imageView = vkImage::make_image_view(logicalDevice, images[i], format.format);
+			bundle.frames[i].imageView = vkImage::make_image_view(
+				logicalDevice, images[i], format.format, vk::ImageAspectFlagBits::eColor
+			);
 		}
 
 		bundle.format = format.format;

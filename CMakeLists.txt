@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
   view/vkImage/image.cpp
   view/vkUtil/single_time_commands.cpp
   view/vkInit/descriptors.cpp
+  view/vkUtil/frame.cpp
 )
 
 # Add header and interface files

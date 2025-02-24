@@ -83,7 +83,8 @@ private:
 	void prepare_frame(uint32_t imageIndex, Scene* scene);
 	void prepare_scene(vk::CommandBuffer commandBuffer);
 	void record_draw_commands(vk::CommandBuffer commandBuffer, uint32_t imageIndex, Scene* scene);
-	void render_objects(vk::CommandBuffer commandBuffer, meshTypes objectType, uint32_t& startInstance, uint32_t instanceCount);
+	void render_objects(
+		vk::CommandBuffer commandBuffer, meshTypes objectType, uint32_t& startInstance, uint32_t instanceCount);
 
 	//Cleanup functions
 	void cleanup_swapchain();
