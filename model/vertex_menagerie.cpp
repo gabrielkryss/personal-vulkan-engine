@@ -9,7 +9,7 @@ void VertexMenagerie::consume(
 	std::vector<uint32_t>& indexData) {
 
 	int indexCount = static_cast<int>(indexData.size());
-	int vertexCount = static_cast<int>(vertexData.size() / 7);
+	int vertexCount = static_cast<int>(vertexData.size() / 8);
 	int lastIndex = static_cast<int>(indexLump.size());
 
 	firstIndices.insert(std::make_pair(type, lastIndex));
@@ -88,6 +88,7 @@ void VertexMenagerie::finalize(vertexBufferFinalizationChunk finalizationChunk) 
 	//destroy staging buffer
 	logicalDevice.destroyBuffer(stagingBuffer.buffer);
 	logicalDevice.freeMemory(stagingBuffer.bufferMemory);
+	vertexLump.clear();
 }
 
 VertexMenagerie::~VertexMenagerie() {

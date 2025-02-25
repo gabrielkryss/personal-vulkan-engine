@@ -4,11 +4,8 @@
 class Scene {
 
 public:
-  Scene();
+	Scene();
 
-  std::vector<glm::vec3> trianglePositions;
+	std::unordered_map<meshTypes, std::vector<glm::vec3>> positions;
 
-  std::vector<glm::vec3> squarePositions;
-
-  std::vector<glm::vec3> starPositions;
 };

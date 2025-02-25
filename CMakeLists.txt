@@ -35,6 +35,8 @@ add_executable(${PROJECT_NAME}
   view/vkUtil/single_time_commands.cpp
   view/vkInit/descriptors.cpp
   view/vkUtil/frame.cpp
+  config.cpp
+  view/vkMesh/obj_mesh.cpp
 )
 
 # Add header and interface files
@@ -62,6 +64,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   view/vkImage/image.h
   view/vkImage/stb_image.h
   view/vkUtil/single_time_commands.h
+  view/vkMesh/obj_mesh.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

@@ -363,7 +363,7 @@ namespace vkInit {
 		rasterizer.polygonMode = vk::PolygonMode::eFill;
 		rasterizer.lineWidth = 1.0f;
 		rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-		rasterizer.frontFace = vk::FrontFace::eClockwise;
+		rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
 		rasterizer.depthBiasEnable = VK_FALSE; //Depth bias can be useful in shadow maps.
 
 		return rasterizer;

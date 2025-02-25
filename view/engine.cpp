@@ -7,6 +7,7 @@
 #include "vkInit/commands.h"
 #include "vkInit/sync.h"
 #include "vkInit/descriptors.h"
+#include "vkMesh/obj_mesh.h"
 
 Engine::Engine(int width, int height, GLFWwindow* window) {
 
@@ -208,55 +209,17 @@ void Engine::make_assets() {
 
 	//Meshes
 	meshes = new VertexMenagerie();
-
-	std::vector<float> vertices = { {
-		 0.0f, -0.1f, 0.0f, 1.0f, 0.0f, 0.5f, 0.0f, //0
-		 0.1f,  0.1f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //1
-		-0.1f,  0.1f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f  //2
-	} };
-	std::vector<uint32_t> indices = { {
-			0, 1, 2
-	} };
-	meshTypes type = meshTypes::TRIANGLE;
-	meshes->consume(type, vertices, indices);
+	std::unordered_map<meshTypes, std::vector<const char*>> model_filenames = {
+		{meshTypes::GROUND, {"../models/ground.obj","../models/ground.mtl"}},
+		{meshTypes::GIRL, {"../models/girl.obj","../models/girl.mtl"}},
+		{meshTypes::SKULL, {"../models/skull.obj","../models/skull.mtl"}}
+	};
 	
-	vertices = { {
-		-0.1f,  0.1f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //0
-		-0.1f, -0.1f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //1
-		 0.1f, -0.1f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //2
-		 0.1f,  0.1f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //3
-	} };
-	indices = { {
-			0, 1, 2,
-			2, 3, 0
-	} };
-	type = meshTypes::SQUARE;
-	meshes->consume(type, vertices, indices);
+	for (std::pair<meshTypes, std::vector<const char*>> pair : model_filenames) {
 
-	vertices = { {
-		 -0.1f, -0.05f, 1.0f, 1.0f, 1.0f, 0.0f, 0.25f, //0
-		-0.04f, -0.05f, 1.0f, 1.0f, 1.0f, 0.3f, 0.25f, //1
-		-0.06f,   0.0f, 1.0f, 1.0f, 1.0f, 0.2f,  0.5f, //2
-		  0.0f,  -0.1f, 1.0f, 1.0f, 1.0f, 0.5f,  0.0f, //3
-		 0.04f, -0.05f, 1.0f, 1.0f, 1.0f, 0.7f, 0.25f, //4
-		  0.1f, -0.05f, 1.0f, 1.0f, 1.0f, 1.0f, 0.25f, //5
-		 0.06f,   0.0f, 1.0f, 1.0f, 1.0f, 0.8f,  0.5f, //6
-		 0.08f,   0.1f, 1.0f, 1.0f, 1.0f, 0.9f,  1.0f, //7
-		  0.0f,  0.02f, 1.0f, 1.0f, 1.0f, 0.5f,  0.6f, //8
-		-0.08f,   0.1f, 1.0f, 1.0f, 1.0f, 0.1f,  1.0f  //9
-	} };
-	indices = { {
-			0, 1, 2, 
-			1, 3, 4, 
-			2, 1, 4, 
-			4, 5, 6, 
-			2, 4, 6, 
-			6, 7, 8, 
-			2, 6, 8, 
-			2, 8, 9  
-	} };
-	type = meshTypes::STAR;
-	meshes->consume(type, vertices, indices);
+		vkMesh::ObjMesh model(pair.second[0], pair.second[1], glm::mat4(1.0f));
+		meshes->consume(pair.first, model.vertices, model.indices);
+	}
 
 	vertexBufferFinalizationChunk finalizationInfo;
 	finalizationInfo.logicalDevice = device;
@@ -268,9 +231,9 @@ void Engine::make_assets() {
 	//Materials
 
 	std::unordered_map<meshTypes, const char*> filenames = { 
-		{meshTypes::TRIANGLE, "../tex/face.jpg"}, 
-		{meshTypes::SQUARE, "../tex/haus.jpg"}, 
-		{meshTypes::STAR, "../tex/noroi.png"}
+		{meshTypes::GROUND, "../tex/ground.jpg"}, 
+		{meshTypes::GIRL, "../tex/none.png"}, 
+		{meshTypes::SKULL, "../tex/skull.png"}
 	};
 
 	//Make a descriptor pool to allocate sets.
@@ -299,12 +262,12 @@ void Engine::prepare_frame(uint32_t imageIndex, Scene* scene) {
 
 	vkUtil::SwapChainFrame& _frame = swapchainFrames[imageIndex];
 
-	glm::vec3 eye = { 1.0f, 0.0f, -1.0f };
-	glm::vec3 center = { 0.0f, 0.0f, 0.0f };
-	glm::vec3 up = { 0.0f, 0.0f, -1.0f };
+	glm::vec3 eye = { -1.0f, 0.0f, 1.0f };
+	glm::vec3 center = { 1.0f, 0.0f, 1.0f };
+	glm::vec3 up = { 0.0f, 0.0f, 1.0f };
 	glm::mat4 view = glm::lookAt(eye, center, up);
 
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(swapchainExtent.width) / static_cast<float>(swapchainExtent.height), 0.1f, 10.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(swapchainExtent.width) / static_cast<float>(swapchainExtent.height), 0.1f, 100.0f);
 	projection[1][1] *= -1;
 
 	_frame.cameraData.view = view;
@@ -313,14 +276,10 @@ void Engine::prepare_frame(uint32_t imageIndex, Scene* scene) {
 	memcpy(_frame.cameraDataWriteLocation, &(_frame.cameraData), sizeof(vkUtil::UBO));
 
 	size_t i = 0;
-	for (glm::vec3& position : scene->trianglePositions) {
-		_frame.modelTransforms[i++] = glm::translate(glm::mat4(1.0f), position);
-	}
-	for (glm::vec3& position : scene->squarePositions) {
-		_frame.modelTransforms[i++] = glm::translate(glm::mat4(1.0f), position);
-	}
-	for (glm::vec3 position : scene->starPositions) {
-		_frame.modelTransforms[i++] = glm::translate(glm::mat4(1.0f), position);
+	for (std::pair<meshTypes, std::vector<glm::vec3>> pair : scene->positions) {
+		for (glm::vec3& position : pair.second) {
+			_frame.modelTransforms[i++] = glm::translate(glm::mat4(1.0f), position);
+		}
 	}
 	memcpy(_frame.modelBufferWriteLocation, _frame.modelTransforms.data(), i * sizeof(glm::mat4));
 
@@ -373,20 +332,11 @@ void Engine::record_draw_commands(vk::CommandBuffer commandBuffer, uint32_t imag
 	prepare_scene(commandBuffer);
 
 	uint32_t startInstance = 0;
-	//Triangles
-	render_objects(
-		commandBuffer, meshTypes::TRIANGLE, startInstance, static_cast<uint32_t>(scene->trianglePositions.size())
-	);
-
-	//Squares
-	render_objects(
-		commandBuffer, meshTypes::SQUARE, startInstance, static_cast<uint32_t>(scene->squarePositions.size())
-	);
-
-	//Stars
-	render_objects(
-		commandBuffer, meshTypes::STAR, startInstance, static_cast<uint32_t>(scene->starPositions.size())
-	);
+	for (std::pair<meshTypes, std::vector<glm::vec3>> pair : scene->positions) {
+		render_objects(
+			commandBuffer, pair.first, startInstance, static_cast<uint32_t>(pair.second.size())
+		);
+	}
 
 	commandBuffer.endRenderPass();
 
